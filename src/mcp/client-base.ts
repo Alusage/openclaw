@@ -96,10 +96,14 @@ export abstract class McpClientBase {
     transport: { close?: () => Promise<void> } & Record<string, unknown>,
   ): Promise<void> {
     this.client = new Client(
-      { name: "openclaw-mcp", version: "1.0.0" },
-      { capabilities: { tools: {}, resources: {} } },
+      { name: "openclaw-mcp", version: "1.0.0" } as unknown as ConstructorParameters<
+        typeof Client
+      >[0],
+      { capabilities: { tools: {}, resources: {} } } as unknown as ConstructorParameters<
+        typeof Client
+      >[1],
     );
-    await this.client.connect(transport as Parameters<Client["connect"]>[0]);
+    await this.client.connect(transport as unknown as Parameters<Client["connect"]>[0]);
 
     const toolsResult = await this.client.listTools();
     this.discoveredTools = toolsResult.tools.map((t) => ({

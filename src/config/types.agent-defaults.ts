@@ -1,4 +1,5 @@
 import type { ChannelId } from "../channels/plugins/types.js";
+import type { McpConfig } from "../mcp/config.js";
 import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared.js";
 import type {
   BlockStreamingChunkConfig,
@@ -254,6 +255,8 @@ export type AgentDefaultsConfig = {
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: AgentSandboxConfig;
+  /** MCP server configuration for this agent. */
+  mcp?: McpConfig;
 };
 
 export type AgentCompactionMode = "default" | "safeguard";

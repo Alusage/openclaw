@@ -10,6 +10,16 @@
 import { isPlainObject } from "../utils.js";
 import { AwsSecretProvider } from "./aws-secret-provider.js";
 
+/** Type-safe client interface for GCP Secret Manager */
+type GcpSecretClient = {
+  accessSecretVersion: (
+    params: Record<string, unknown>,
+  ) => Promise<[{ payload?: { data?: Uint8Array | string } }]>;
+  listSecrets: (params: Record<string, unknown>) => Promise<[Array<{ name?: string }>]>;
+  addSecretVersion: (params: Record<string, unknown>) => Promise<unknown[]>;
+  createSecret: (params: Record<string, unknown>) => Promise<unknown>;
+};
+
 // Matches ${provider:name} or ${provider:name#version}
 // Provider: lowercase alpha. Name: alphanum, hyphens, underscores, slashes, dots.
 // Version (optional): after #, alphanumeric.
@@ -133,7 +143,7 @@ export class GcpSecretProvider implements SecretProvider {
       return cached.value;
     }
 
-    const client = await this.getClient();
+    const client = (await this.getClient()) as GcpSecretClient;
     const resourceName = `projects/${this.project}/secrets/${secretName}/versions/${ver}`;
 
     let response: { payload?: { data?: Uint8Array | string } } | undefined;
@@ -154,7 +164,10 @@ export class GcpSecretProvider implements SecretProvider {
       if (code === 4) {
         // Retry once
         try {
-          const retryClient = await this.getClient();
+          const retryClient = (await this.getClient()) as Pick<
+            GcpSecretClient,
+            "accessSecretVersion"
+          >;
           [response] = await retryClient.accessSecretVersion({ name: resourceName });
         } catch {
           if (cached) {
@@ -182,7 +195,7 @@ export class GcpSecretProvider implements SecretProvider {
   }
 
   async setSecret(secretName: string, value: string): Promise<void> {
-    const client = await this.getClient();
+    const client = (await this.getClient()) as GcpSecretClient;
     const parent = `projects/${this.project}`;
 
     try {
@@ -202,7 +215,7 @@ export class GcpSecretProvider implements SecretProvider {
   }
 
   async listSecrets(): Promise<string[]> {
-    const client = await this.getClient();
+    const client = (await this.getClient()) as GcpSecretClient;
     const [secrets] = await client.listSecrets({
       parent: `projects/${this.project}`,
     });
@@ -215,7 +228,7 @@ export class GcpSecretProvider implements SecretProvider {
 
   async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
-      const client = await this.getClient();
+      const client = (await this.getClient()) as GcpSecretClient;
       await client.listSecrets({ parent: `projects/${this.project}` });
       return { ok: true };
     } catch (err: unknown) {

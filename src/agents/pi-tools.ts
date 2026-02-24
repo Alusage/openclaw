@@ -153,6 +153,8 @@ export function createOpenClawCodingTools(options?: {
    * tool-name blocking quirks.
    */
   modelAuthMode?: ModelAuthMode;
+  /** Model context window size in tokens (used for adaptive tool limits). */
+  modelContextWindowTokens?: number;
   /** Current channel ID for auto-threading (Slack). */
   currentChannelId?: string;
   /** Current thread timestamp for auto-threading (Slack). */
@@ -439,7 +441,9 @@ export function createOpenClawCodingTools(options?: {
   });
   // Always normalize tool JSON Schemas before handing them to pi-agent/pi-ai.
   // Without this, some providers (notably OpenAI) will reject root-level union schemas.
-  const normalized = subagentFiltered.map(normalizeToolParameters);
+  const normalized = subagentFiltered.map((tool) =>
+    normalizeToolParameters(tool, { modelProvider: options?.modelProvider }),
+  );
   const withHooks = normalized.map((tool) =>
     wrapToolWithBeforeToolCallHook(tool, {
       agentId,

@@ -40,7 +40,9 @@ export class StdioMcpClient extends McpClientBase {
       // eslint-disable-next-line unicorn/prefer-add-event-listener
       this.transport.onerror = () => this.handleDisconnect();
 
-      await this.initializeClient(this.transport);
+      await this.initializeClient(
+        this.transport as unknown as { close?: () => Promise<void> } & Record<string, unknown>,
+      );
     } catch (err) {
       this.status = "error";
       this.handleDisconnect();

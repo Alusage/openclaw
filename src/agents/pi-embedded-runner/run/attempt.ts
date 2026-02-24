@@ -66,11 +66,10 @@ import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isRunnerAbortError } from "../abort.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
-import { buildEmbeddedExtensionPaths } from "../extensions.js";
+import { buildEmbeddedExtensionFactories } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
 import {
   logToolSchemasForGoogle,
-  sanitizeAntigravityThinkingBlocks,
   sanitizeSessionHistory,
   sanitizeToolsForGoogle,
 } from "../google.js";
@@ -538,7 +537,7 @@ export async function runEmbeddedAttempt(
       });
 
       // Call for side effects (sets compaction/pruning runtime state)
-      buildEmbeddedExtensionPaths({
+      buildEmbeddedExtensionFactories({
         cfg: params.config,
         sessionManager,
         provider: params.provider,
@@ -903,9 +902,7 @@ export async function runEmbeddedAttempt(
             sessionManager.resetLeaf();
           }
           const sessionContext = sessionManager.buildSessionContext();
-          const sanitizedOrphan = transcriptPolicy.normalizeAntigravityThinkingBlocks
-            ? sanitizeAntigravityThinkingBlocks(sessionContext.messages)
-            : sessionContext.messages;
+          const sanitizedOrphan = sessionContext.messages;
           activeSession.agent.replaceMessages(sanitizedOrphan);
           log.warn(
             `Removed orphaned user message to prevent consecutive user turns. ` +
@@ -1131,6 +1128,7 @@ export async function runEmbeddedAttempt(
         lastToolError: getLastToolError?.(),
         didSendViaMessagingTool: didSendViaMessagingTool(),
         messagingToolSentTexts: getMessagingToolSentTexts(),
+        messagingToolSentMediaUrls: [],
         messagingToolSentTargets: getMessagingToolSentTargets(),
         cloudCodeAssistFormatError: Boolean(
           lastAssistant?.errorMessage && isCloudCodeAssistFormatError(lastAssistant.errorMessage),

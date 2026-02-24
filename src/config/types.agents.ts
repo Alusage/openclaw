@@ -1,4 +1,5 @@
 import type { ChatType } from "../channels/chat-type.js";
+import type { McpConfig } from "../mcp/config.js";
 import type { AgentDefaultsConfig } from "./types.agent-defaults.js";
 import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
@@ -32,6 +33,8 @@ export type AgentConfig = {
   /** Optional per-agent stream params (e.g. cacheRetention, temperature). */
   params?: Record<string, unknown>;
   tools?: AgentToolsConfig;
+  /** MCP server configuration for this agent. */
+  mcp?: McpConfig;
 };
 
 export type AgentsConfig = {
